@@ -3,55 +3,46 @@ kafka-docker
 
 Dockerfile for [Apache Kafka](http://kafka.apache.org/)
 
-The image is available directly from https://registry.hub.docker.com/
+The image is available directly from [DockerHub](https://hub.docker.com/r/dockerkafka/kafka/)
 
-##Pre-Requisites
+## Usage
 
-- install docker-compose [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
-- modify the ```KAFKA_ADVERTISED_HOST_NAME``` in ```docker-compose.yml``` to match your docker host IP (Note: Do not use localhost or 127.0.0.1 as the host ip if you want to run multiple brokers.)
-- if you want to customise any Kafka parameters, simply add them as environment variables in ```docker-compose.yml```, e.g. in order to increase the ```message.max.bytes``` parameter set the environment to ```KAFKA_MESSAGE_MAX_BYTES: 2000000```. To turn off automatic topic creation set ```KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'```
+### Pull the image.
+```sh
+$ docker pull dockerkafka/kafka
+```
 
-##Usage
+### Start a server.
+```sh
+$  docker run -d --name kafkadocker_zookeeper_1  dockerkafka/zookeeper
+$  docker run -d --name kafkadocker_kafka_1 --link kafkadocker_zookeeper_1:zookeeper dockerkafka/kafka
+```
+### Create a topic.
+```sh
+$  docker run -it --rm --link kafkadocker_zookeeper_1:zookeeper dockerkafka/kafka kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 5 --topic test
+```
+###Connect to the server ...
 
-Start a cluster:
+Don't bother the ``` WARN Property topic is not valid (kafka.utils.VerifiableProperties) ``` warn. It is a bug [KAFKA-1711](https://issues.apache.org/jira/browse/KAFKA-1711).
 
-- ```docker-compose up -d ```
+#### ... as a producer.
 
-Add more brokers:
+After connection, you will got a stream. Evry line is a new message.
 
-- ```docker-compose scale kafka=3```
+```sh
+$  docker run -it --rm --link kafkadocker_kafka_1:kafka dockerkafka/kafka kafka-console-producer.sh --broker-list kafka:9092 --topic test
+```
+#### ... as a consumer.
 
-Destroy a cluster:
+After connection, all of the sent messages will be fetched, then wait for new messages.
 
-- ```docker-compose stop```
+```sh
+$  $ docker run -it --rm --link kafkadocker_zookeeper_1:zookeeper --link kafkadocker_kafka_1:kafka dockerkafka/kafka kafka-console-consumer.sh --zookeeper zookeeper:2181 --topic test --from-beginning
+```
 
-##Note
+## Customization
 
-The default ```docker-compose.yml``` should be seen as a starting point. By default each broker will get a new port number and broker id on restart. Depending on your use case this might not be desirable. If you need to use specific ports and broker ids, modify the docker-compose configuration accordingly, e.g. [docker-compose-single-broker.yml](https://github.com/wurstmeister/kafka-docker/blob/master/docker-compose-single-broker.yml):
-
-- ```docker-compose -f docker-compose-single-broker.yml up```
-
-##Broker IDs
-
-If you don't specify a broker id in your docker-compose file, it will automatically be generated based on the name that docker-compose gives the container. This allows scaling up and down. In this case it is recommended to use the ```--no-recreate``` option of docker-compose to ensure that containers are not re-created and thus keep their names and ids.
-
-
-##Automatically create topics
-
-If you want to have kafka-docker automatically create topics in Kafka during
-creation, a ```KAFKA_CREATE_TOPICS``` environment variable can be
-added in ```docker-compose.yml```.
-
-Here is an example snippet from ```docker-compose.yml```:
-
-        environment:
-          KAFKA_CREATE_TOPICS: "Topic1:1:3,Topic2:1:1"
-
-```Topic 1``` will have 1 partition and 3 replicas, ```Topic 2``` will have 1 partition and 1 replica.
-
-##Tutorial
-
-[http://wurstmeister.github.io/kafka-docker/](http://wurstmeister.github.io/kafka-docker/)
-
-
-
+Check out this repository, you will found the default Kafka configuration files under image/conf. Modify them and run
+```sh
+$  docker-compose up
+```

@@ -1,18 +1,16 @@
-FROM ubuntu:trusty
+FROM java:8-jre
 
-MAINTAINER Wurstmeister 
+MAINTAINER PalSzak
 
-ENV KAFKA_VERSION="0.8.2.1" SCALA_VERSION="2.10"
+RUN  wget -q -O - http://www.eu.apache.org/dist/kafka/0.8.2.1/kafka_2.10-0.8.2.1.tgz | tar -xzf - -C /opt
 
-RUN apt-get update && apt-get install -y unzip openjdk-6-jdk wget curl git docker.io jq
+ENV PATH /opt/kafka_2.10-0.8.2.1/bin:$PATH
 
-ADD download-kafka.sh /tmp/download-kafka.sh
-RUN /tmp/download-kafka.sh
-RUN tar xf /tmp/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz -C /opt
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
-VOLUME ["/kafka"]
+VOLUME ["/opt/kafka_2.10-0.8.2.1/config", "/kafka"]
 
-ENV KAFKA_HOME /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION}
-ADD start-kafka.sh /usr/bin/start-kafka.sh
-ADD broker-list.sh /usr/bin/broker-list.sh
-CMD start-kafka.sh
+EXPOSE 9092
+
+CMD  ["kafka-server-start.sh", "/opt/kafka_2.10-0.8.2.1/config/server.properties"]
