@@ -29,7 +29,7 @@ Don't bother the ``` WARN Property topic is not valid (kafka.utils.VerifiablePro
 
 #### ... as a producer.
 
-After connection, you will got a stream. Evry line is a new message.
+After connection, you will got a stream. Every line is a new message.
 
 ```sh
 $  docker run -it --rm --link kafkadocker_kafka_1:kafka dockerkafka/kafka kafka-console-producer.sh --broker-list kafka:9092 --topic test
