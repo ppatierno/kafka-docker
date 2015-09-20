@@ -9,7 +9,8 @@ ENV PATH /opt/kafka_2.10-0.8.2.1/bin:$PATH
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
-VOLUME ["/opt/kafka_2.10-0.8.2.1/config", "/kafka"]
+COPY ./image/conf /opt/kafka_2.10-0.8.2.1/config
+VOLUME ["/opt/kafka_2.10-0.8.2.1/config"]
 
 EXPOSE 9092
 

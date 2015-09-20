@@ -42,7 +42,14 @@ $  $ docker run -it --rm --link kafkadocker_zookeeper_1:zookeeper --link kafkado
 
 ## Customization
 
-Check out this repository, you will found the default Kafka configuration files under image/conf. Modify them and run
+Check out this repository, you will found the default Kafka configuration files under image/conf.
+
+Start the container with the following line, so now you can modify the config in your host, and then start the server.
 ```sh
-$  docker-compose up
+$  docker run -it --rm --volume `pwd`/image/conf:/opt/kafka_2.10-0.8.2.1/config kafkadocker/kafka /bin/bash
+```
+
+After you finished the customization & testing of the config changes, build your own image.
+```sh
+$  docker build --tag="my-image" .
 ```
